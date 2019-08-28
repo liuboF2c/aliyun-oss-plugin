@@ -29,7 +29,8 @@ public class AliyunOSSPublisher extends Publisher {
 	String bucketName;
 	String filesPath;
 	String objectPrefix;
-	
+	String region;
+
 	public String getBucketName() {
 		return bucketName;
 	}
@@ -54,11 +55,20 @@ public class AliyunOSSPublisher extends Publisher {
 		this.objectPrefix = objectPrefix;
 	}
 
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
+	}
+
 	@DataBoundConstructor
-	public AliyunOSSPublisher(final String bucketName, final String filesPath, final String objectPrefix) {
+	public AliyunOSSPublisher(final String bucketName, final String filesPath, final String objectPrefix, final String region) {
 		this.bucketName = bucketName;
 		this.filesPath = filesPath;
 		this.objectPrefix = objectPrefix;
+		this.region = region;
 	}
 
 	public BuildStepMonitor getRequiredMonitorService() {
@@ -78,6 +88,7 @@ public class AliyunOSSPublisher extends Publisher {
 		private String aliyunAccessKey;
 		private String aliyunSecretKey;
 		private String aliyunEndPointSuffix;
+		private String region;
 
 		public DescriptorImpl() {
 			super(AliyunOSSPublisher.class);
@@ -132,13 +143,26 @@ public class AliyunOSSPublisher extends Publisher {
 			return FormValidation.ok("验证阿里云帐号成功！");
 		}
 
+
+		public FormValidation doCheckRegion(@QueryParameter String val)
+				throws IOException, ServletException {
+			if (Utils.isNullOrEmpty(val)) {
+				return FormValidation.error("Region不能为空！");
+			}
+			this.region = val;
+			return FormValidation.ok();
+		}
+
 		public FormValidation doCheckBucket(@QueryParameter String val)
 				throws IOException, ServletException {
+			if (Utils.isNullOrEmpty(region)) {
+				return FormValidation.error("Region不能为空！");
+			}
 			if (Utils.isNullOrEmpty(val)) {
 				return FormValidation.error("Bucket不能为空！");
 			}
 			try {
-				AliyunOSSClient.validateOSSBucket(aliyunAccessKey,
+				AliyunOSSClient.validateOSSBucket(region, aliyunAccessKey,
 						aliyunSecretKey, val);
 			} catch (Exception e) {
 				return FormValidation.error(e.getMessage());
@@ -210,7 +234,7 @@ public class AliyunOSSPublisher extends Publisher {
                     this.getDescriptor().aliyunAccessKey,
 					this.getDescriptor().aliyunSecretKey,
                     this.getDescriptor().aliyunEndPointSuffix,
-                    bucketName, expFP, expVP);
+                    region, bucketName, expFP, expVP);
 			if (filesUploaded > 0) { 
 				listener.getLogger().println("上传Artifacts到阿里云OSS成功，上传文件个数:" + filesUploaded);
 				success = true;

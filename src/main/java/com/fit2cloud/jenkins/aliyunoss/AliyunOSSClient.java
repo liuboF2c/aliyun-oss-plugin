@@ -28,10 +28,10 @@ public class AliyunOSSClient {
 	}
 
 
-	public static boolean validateOSSBucket(String aliyunAccessKey,
+	public static boolean validateOSSBucket(String region, String aliyunAccessKey,
 											String aliyunSecretKey, String bucketName) throws AliyunOSSException{
 		try {
-			OSSClient client = new OSSClient(aliyunAccessKey, aliyunSecretKey);
+			OSSClient client = new OSSClient("http://" + region + ".aliyuncs.com", aliyunAccessKey, aliyunSecretKey);
 			client.getBucketLocation(bucketName);
 		} catch (Exception e) {
 			throw new AliyunOSSException("验证Bucket名称失败：" + e.getMessage());
@@ -40,11 +40,9 @@ public class AliyunOSSClient {
 	}
 
 	public static int upload(AbstractBuild<?, ?> build, BuildListener listener,
-							 final String aliyunAccessKey, final String aliyunSecretKey, final String aliyunEndPointSuffix, String bucketName,String expFP,String expVP) throws AliyunOSSException {
-		OSSClient client = new OSSClient(aliyunAccessKey, aliyunSecretKey);
-		String location = client.getBucketLocation(bucketName);
+							 final String aliyunAccessKey, final String aliyunSecretKey, final String aliyunEndPointSuffix, String location, String bucketName,String expFP,String expVP) throws AliyunOSSException {
 		String endpoint = "http://" + location + aliyunEndPointSuffix;
-		client = new OSSClient(endpoint, aliyunAccessKey, aliyunSecretKey);
+		OSSClient client = new OSSClient(endpoint, aliyunAccessKey, aliyunSecretKey);
 		int filesUploaded = 0; // Counter to track no. of files that are uploaded
 		try {
 			FilePath workspacePath = build.getWorkspace();
